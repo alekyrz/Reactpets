@@ -1,26 +1,16 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 
-class SearchInput extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      text: '',
-    };
-  }
 
-  onChange(event) {
-    this.setState({ text: event.target.value });
-  }
-
-  render() {
+function SearchInput(props){
+  const[state, setState] = useState('')
     return (
       <input
-        value={this.state.text}
-        onChange={this.onChange.bind(this)}
-        {...this.props}
+        value={state}
+        onChange={event => setState(event.target.value)}
+        {...props}
       />
     )
-  }
+
 }
 
 export default SearchInput;

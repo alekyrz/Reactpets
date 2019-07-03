@@ -1,108 +1,111 @@
-import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import React, {
+  useState,
+  useEffect
+} from 'react';
+import {
+  Link
+} from 'react-router-dom';
 
 import PetForm from '../components/PetForm';
 import PetInfo from '../components/PetInfo';
+import api from '../lib/api';
 
-class Pet extends Component {
-  constructor(props) {
-    super(props);
+const INITIAL_STATE = {
+  ageInMonths: 0,
+  breed: '',
+  isAdopted: false,
+  name: '',
+  owner: '',
+  img: '',
+  size: '',
+  species: '',
+  userId: '',
+  description: '',
+  edit: false,
+}
 
-    this.state = {
-      ageInMonths: 0,
-      breed: '',
-      isAdopted: false,
-      name: '',
-      owner: '',
-      img: '',
-      size: '',
-      species: '',
-      userId: '',
-      description: '',
-      edit: false,
+function Pet(props) {
+  const [state, setState] = useState(INITIAL_STATE)
+  const {
+    id
+  } = props.match.params;
+
+  async function onSubmit() {
+    const {
+      img: photo,
+      ...body
+    } = state
+    const updatePetResponse = await api.updatePet(id, {
+      photo,
+      ...body
+    })
+    if (updatePetResponse) props.history.push(props.location.pathname)
+  }
+
+  useEffect(() => {
+    async function fetchData() {
+      const pet = await api.getPet(id)
+      if (state.name !== pet.name) setState({
+        ...state,
+        img: pet.photo,
+        ...pet
+      });
     };
-  }
 
-  componentDidMount() {
-    this.fetchData()
-  }
-
-  async fetchData() {
-    const { id } = this.props.match.params;
-
-    const response = await fetch(`http://localhost:8080/pets/${id}`);
-
-    const { payload } = await response.json();
-
-    const { pet } = payload;
-
-    this.setState({ img: pet.photo, ...pet });
-  }
-
-  componentDidUpdate() {
-    const { search } = this.props.location;
+    const {
+      search
+    } = props.location
 
     if (search) {
       const str = search.replace('?', '');
 
       const [key, value] = str.split('=');
 
-      const query = { [key]: JSON.parse(value) };
-
-      if (this.state.edit !== query.edit) this.setState(query);
+      const query = {
+        [key]: JSON.parse(value)
+      };
+      if (state.edit !== query.edit) setState({
+        ...state,
+        ...query
+      });
     } else {
-      if (this.state.edit === true) this.setState({ edit: false });
+      if (state.edit === true) setState({
+        ...state,
+        edit: false
+      });
     }
-  }
+    fetchData()
+  }, [state, props, id])
 
-  async onSubmit(formData) {
-    const { id } = this.props.match.params;
-
-    const response = await fetch(`http://localhost:8080/pets/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: formData.name,
-        breed: formData.breed,
-        photo: formData.img,
-      }),
-    });
-
-    const { success } = await response.json();
-
-    if (success) {
-      this.fetchData();
-      this.props.history.push(this.props.location.pathname)
+  const child = state.edit ?
+    <
+    PetForm {
+      ...state
     }
+  onSubmit = {
+    onSubmit
   }
-
-  onChange(event) {
-    const { id, value } = event.target;
-
-    this.setState({ [id]: value });
-  }
-
-  render() {
-    const child = this.state.edit
-      ? <PetForm
-        {...this.state}
-        onSubmit={this.onSubmit.bind(this)}
-      />
-      : <PetInfo {...this.state} />
-
-    return (
-      <div className="container">
-        <Link
-          className={`btn btn-${this.state.edit ? 'danger' : 'info'}`}
-          to={`${this.props.location.pathname}${this.state.edit ? '' : '?edit=true'}`}
-        >
-          { this.state.edit ? 'Cancel edit' : 'Edit' }
-        </Link>
-
-        { child }
-      </div>
-    );
-  }
+  />: < PetInfo {
+  ...state
 }
+/>
+
+return (
+  <div className = "container" >
+  <Link className = {
+    `btn btn-${state.edit ? 'danger' : 'info'}`
+  }
+  to = {
+    `${props.location.pathname}${state.edit ? '' : '?edit=true'}`
+  } > {
+    state.edit ? 'Cancel edit' : 'Edit'
+  } </Link>
+
+  {
+    child
+  } </div>
+);
+}
+
 
 export default Pet;

@@ -1,78 +1,44 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect} from 'react';
 import { Link } from 'react-router-dom';
-
+import api from '../lib/api'
 import Card from '../components/Card';
 import CustomButton from '../components/CustomButton';
 
-class Index extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      list: [],
-    };
+function Index () {
+  const [state, setState]=useState([])
+
+  async function onDelete(petId){
+    const deleteResponse = await api.deletePet(petId)
+    if(deleteResponse){
+      const pets = await api.getPets()
+      setState(pets)
+    }
   }
 
-  async fetchData() {
-    const response = await fetch('http://localhost:8080/pets');
-
-    const { payload } = await response.json();
-
-    const list = payload.pets.map((pet) => {
-      const {
-        name: title,
-        breed: subtitle,
-        photo: img,
-        isAdopted: adopt,
-        _id: id,
-      } = pet;
-
-      return {
-        title,
-        subtitle,
-        img,
-        adopt,
-        id,
-      };
-    });
-
-    this.setState({ list });
+  async function onAdopt(petId){
+    const adoptResponse = await api.adoptPet(petId)
+    if(adoptResponse){
+      const pets = await api.getPets()
+      setState(pets)
+    }
   }
 
-  async onDelete(id) {
-    const response = await fetch(`http://localhost:8080/pets/${id}`, {
-      method: 'DELETE',
-    });
+  useEffect(()=>{
+    async function getData(){
+       const pets= await api.getPets()
+    setState(pets)
+    }
+   getData()
 
-    const { success } = await response.json();
-
-    if (success) this.fetchData();
-  }
-
-  async onClick(id) {
-    const response = await fetch(`http://localhost:8080/pets/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isAdopted: true }),
-    });
-
-    const { success } = await response.json();
-
-    if (success) this.fetchData();
-  }
-
-  componentDidMount() {
-    this.fetchData()
-  }
-
-  render() {
-    const cards = this.state.list.map((petInfo) => (
+  },[])
+    const cards = state.map((petInfo) => (
       <div
         className="col-md-4"
         key={petInfo.id}
       >
         <Card {...petInfo}>
           <CustomButton
-            onClick={this.onDelete.bind(this, petInfo.id)}
+            onClick={()=> onDelete(petInfo.id)}
             text="Borrar"
             className="is-danger"
           />
@@ -87,7 +53,7 @@ class Index extends Component {
           { !petInfo.adopt
               ?
                 <CustomButton
-                  onClick={this.onClick.bind(this, petInfo.id)}
+                  onClick={() => onAdopt (petInfo.id)}
                   text="Adoptar"
                   className="is-success"
                 />
@@ -106,6 +72,6 @@ class Index extends Component {
       </div>
     )
   }
-}
+
 
 export default Index;

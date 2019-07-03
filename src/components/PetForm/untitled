@@ -1,36 +1,42 @@
-import React, { useState } from 'react';
 
-import CustomButton from '../CustomButton';
+}
+class PetForm extends Component {
+  constructor(props) {
+    super(props)
 
-import styles from './index.module.css';
-
-
-function PetForm (props) {
     const {
       name = '',
       breed = '',
       img = ''
     } = props;
-    const [state, setState] =useState({name, breed, img})
 
-  function onChange(event) {
+    this.state = {
+      name,
+      breed,
+      img,
+    };
+  }
+
+  onChange(event) {
     const { id, value } = event.target;
 
-    setState({ ...state, [id]: value });
+    this.setState({ [id]: value });
   }
 
-  function onSubmit(event) {
+  onSubmit(event) {
     event.preventDefault();
 
-    props.onSubmit(state);
+    this.props.onSubmit(this.state);
   }
-return (
-      <form onSubmit={onSubmit}>
+
+  render() {
+    return (
+      <form onSubmit={this.onSubmit.bind(this)}>
         {
-          state.img && (
+          this.state.img && (
             <img
               className={styles.img}
-              src={state.img}
+              src={this.state.img}
               alt="pet"
             />
           )
@@ -45,8 +51,8 @@ return (
             className="form-control"
             aria-describedby="pet-img"
             placeholder="Enter the img link of the pet"
-            value={state.img}
-            onChange={onChange}
+            value={this.state.img}
+            onChange={this.onChange.bind(this)}
           />
         </div>
 
@@ -59,8 +65,8 @@ return (
             className="form-control"
             aria-describedby="pet-name"
             placeholder="Enter the name of the pet"
-            value={state.name}
-            onChange={onChange}
+            value={this.state.name}
+            onChange={this.onChange.bind(this)}
           />
         </div>
 
@@ -73,8 +79,8 @@ return (
             className="form-control"
             aria-describedby="pet-breed"
             placeholder="Enter the breed of the pet"
-            value={state.breed}
-            onChange={onChange}
+            value={this.state.breed}
+            onChange={this.onChange.bind(this)}
           />
         </div>
 
@@ -85,9 +91,6 @@ return (
       </form>
     )
   }
-
-
-
-
+}
 
 export default PetForm;
